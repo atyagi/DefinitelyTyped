@@ -54,6 +54,8 @@ DateTime.utc();
 DateTime.local().toUTC();
 DateTime.utc().toLocal();
 
+DateTime.fromMillis(1527780819458).toMillis();
+
 /* Duration */
 const dur = Duration.fromObject({ hours: 2, minutes: 7 });
 dt.plus(dur);
@@ -78,6 +80,9 @@ i.toString();
 /* Info */
 Info.months();
 Info.weekdays('long');
+Info.features().intl;
+Info.features().intlTokens;
+Info.features().zones;
 
 /* Settings */
 Settings.defaultLocale;
@@ -85,6 +90,7 @@ Settings.defaultLocale = 'en';
 Settings.defaultZoneName = 'Europe/Paris';
 Settings.now();
 Settings.now = () => 0;
+Settings.resetCaches();
 
 // $ExpectError
 Settings.defaultZone = Settings.defaultZone;

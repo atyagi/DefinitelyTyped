@@ -18,15 +18,19 @@ import {
 } from "../index";
 
 export type FormSubmitHandler<FormData = {}, P = {}> =
-    (values: Partial<FormData>, dispatch: Dispatch<any>, props: P) => void | FormErrors<FormData> | Promise<any>;
+    (values: FormData, dispatch: Dispatch<any>, props: P) => void | FormErrors<FormData> | Promise<any>;
 
-export type SubmitHandler<FormData = {}, P = {}> = (
-    submit: FormSubmitHandler<FormData, P>,
-    props?: InjectedFormProps<FormData, P>,
-    valid?: boolean,
-    asyncValidate?: any,
-    fields?: string[]
-) => any;
+export type GetFormState = (state: any) => FormStateMap;
+export interface SubmitHandler<FormData = {}, P = {}> {
+    (
+        submit: FormSubmitHandler<FormData, P>,
+        props?: InjectedFormProps<FormData, P>,
+        valid?: boolean,
+        asyncValidate?: any,
+        fields?: string[]
+    ): any;
+    (event: SyntheticEvent<any>): void;
+}
 
 export interface ValidateCallback<FormData, P> {
     values: FormData;
@@ -102,17 +106,20 @@ export interface ConfigProps<FormData = {}, P = {}> {
     destroyOnUnmount?: boolean;
     enableReinitialize?: boolean;
     forceUnregisterOnUnmount?: boolean;
-    getFormState?(state: any): FormStateMap;
+    getFormState?: GetFormState;
     immutableProps?: string[];
     initialValues?: Partial<FormData>;
     keepDirtyOnReinitialize?: boolean;
+    updateUnregisteredFields?: boolean;
     onChange?(values: Partial<FormData>, dispatch: Dispatch<any>, props: P & InjectedFormProps<FormData, P>): void;
-    onSubmit?: FormSubmitHandler<FormData, P & InjectedFormProps<FormData, P>>;
+    onSubmit?: FormSubmitHandler<FormData, P & InjectedFormProps<FormData, P>> | SubmitHandler<FormData, P & InjectedFormProps<FormData, P>>;
     onSubmitFail?(errors: FormErrors<FormData>, dispatch: Dispatch<any>, submitError: any, props: P & InjectedFormProps<FormData, P>): void;
     onSubmitSuccess?(result: any, dispatch: Dispatch<any>, props: P & InjectedFormProps<FormData, P>): void;
     propNamespace?: string;
     pure?: boolean;
     shouldValidate?(params: ValidateCallback<FormData, P>): boolean;
+    shouldError?(params: ValidateCallback<FormData, P>): boolean;
+    shouldWarn?(params: ValidateCallback<FormData, P>): boolean;
     shouldAsyncValidate?(params: AsyncValidateCallback<FormData>): boolean;
     touchOnBlur?: boolean;
     touchOnChange?: boolean;
@@ -127,6 +134,7 @@ export interface FormInstance<FormData, P> extends Component<P> {
     pristine: boolean;
     registeredFields: RegisteredFieldState[];
     reset(): void;
+    resetSection(...sections: string[]): void;
     submit(): Promise<any>;
     valid: boolean;
     values: Partial<FormData>;

@@ -16,6 +16,7 @@
 /// <reference types="node" />
 
 import Promise = require('bluebird');
+import tls = require('tls');
 
 interface RedisStatic {
     new(port?: number, host?: string, options?: IORedis.RedisOptions): IORedis.Redis;
@@ -48,6 +49,7 @@ declare namespace IORedis {
     }
 
     interface Redis extends NodeJS.EventEmitter, Commander {
+        Promise: typeof Promise;
         status: string;
         connect(callback?: () => void): Promise<any>;
         disconnect(): void;
@@ -227,8 +229,8 @@ declare namespace IORedis {
         zcard(key: string, callback: (err: Error, res: number) => void): void;
         zcard(key: string): Promise<number>;
 
-        zscore(key: string, member: string, callback: (err: Error, res: number) => void): void;
-        zscore(key: string, member: string): Promise<number>;
+        zscore(key: string, member: string, callback: (err: Error, res: string) => void): void;
+        zscore(key: string, member: string): Promise<string>;
 
         zrank(key: string, member: string, callback: (err: Error, res: number) => void): void;
         zrank(key: string, member: string): Promise<number>;
@@ -595,6 +597,7 @@ declare namespace IORedis {
         hget(key: string, field: string, callback?: (err: Error, res: string) => void): Pipeline;
 
         hmset(key: string, field: string, value: any, ...args: string[]): Pipeline;
+        hmset(key: string, data: any, callback?: (err: Error, res: 0 | 1) => void): Pipeline;
 
         hmget(key: string, ...fields: string[]): Pipeline;
 
@@ -796,7 +799,11 @@ declare namespace IORedis {
          * Fixed in: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/15858
          */
         retryStrategy?(times: number): number | false;
-        reconnectOnError?(error: Error): boolean;
+        /**
+         * 1/true means reconnect, 2 means reconnect and resend failed command. Returning false will ignore
+         * the error and do nothing.
+         */
+        reconnectOnError?(error: Error): boolean | 1 | 2;
         /**
          * By default, if there is no active connection to the Redis server, commands are added to a queue
          * and are executed once the connection is "ready" (when enableReadyCheck is true, "ready" means
@@ -821,9 +828,7 @@ declare namespace IORedis {
          */
         autoResendUnfulfilledCommands?: boolean;
         lazyConnect?: boolean;
-        tls?: {
-            ca: Buffer;
-        };
+        tls?: tls.ConnectionOptions;
         sentinels?: Array<{ host: string; port: number; }>;
         name?: string;
         /**
